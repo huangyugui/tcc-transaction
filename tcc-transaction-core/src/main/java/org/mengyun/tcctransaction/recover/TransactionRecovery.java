@@ -46,12 +46,14 @@ public class TransactionRecovery {
 
         for (Transaction transaction : transactions) {
 
+            //超过次数的，跳过
             if (transaction.getRetriedCount() > transactionConfigurator.getRecoverConfig().getMaxRetryCount()) {
 
                 logger.error(String.format("recover failed with max retry count,will not try again. txid:%s, status:%s,retried count:%d,transaction content:%s", transaction.getXid(), transaction.getStatus().getId(), transaction.getRetriedCount(), JSON.toJSONString(transaction)));
                 continue;
             }
 
+            //如果是分支的，并且没有超时就continue
             if (transaction.getTransactionType().equals(TransactionType.BRANCH)
                     && (transaction.getCreateTime().getTime() +
                     transactionConfigurator.getRecoverConfig().getMaxRetryCount() *
@@ -61,8 +63,9 @@ public class TransactionRecovery {
             }
             
             try {
-                transaction.addRetriedCount();
+                transaction.addRetriedCount(); //重试次数+1
 
+                //如果是提交阶段，则继续提交
                 if (transaction.getStatus().equals(TransactionStatus.CONFIRMING)) {
 
                     transaction.changeStatus(TransactionStatus.CONFIRMING);
@@ -70,6 +73,7 @@ public class TransactionRecovery {
                     transaction.commit();
                     transactionConfigurator.getTransactionRepository().delete(transaction);
 
+                //如果是取消阶段，或者是事务发起者的时候则调用rollback
                 } else if (transaction.getStatus().equals(TransactionStatus.CANCELLING)
                         || transaction.getTransactionType().equals(TransactionType.ROOT)) {
 

@@ -19,6 +19,9 @@ public class ConfigurableTransactionAspect extends CompensableTransactionAspect 
 
         TransactionManager transactionManager = transactionConfigurator.getTransactionManager();
 
+        /**
+         * 可补偿事务拦截器
+         */
         CompensableTransactionInterceptor compensableTransactionInterceptor = new CompensableTransactionInterceptor();
         compensableTransactionInterceptor.setTransactionManager(transactionManager);
         compensableTransactionInterceptor.setDelayCancelExceptions(transactionConfigurator.getRecoverConfig().getDelayCancelExceptions());

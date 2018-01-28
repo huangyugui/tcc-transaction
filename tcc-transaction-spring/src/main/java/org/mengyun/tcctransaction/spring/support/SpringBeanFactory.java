@@ -21,6 +21,11 @@ public class SpringBeanFactory implements BeanFactory, ApplicationContextAware {
         FactoryBuilder.registerBeanFactory(this);
     }
 
+    /**
+     * 判断spring的对象池中有没有这个类型的对象
+     * @param clazz
+     * @return
+     */
     @Override
     public boolean isFactoryOf(Class clazz) {
         Map map = this.applicationContext.getBeansOfType(clazz);

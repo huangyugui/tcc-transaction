@@ -17,6 +17,9 @@ public class CompensableMethodUtils {
     public static Method getCompensableMethod(ProceedingJoinPoint pjp) {
         Method method = ((MethodSignature) (pjp.getSignature())).getMethod();
 
+        /**
+         * 为了防止获取到的接口的方法，而不是具体的实现类的方法
+         */
         if (method.getAnnotation(Compensable.class) == null) {
             try {
                 method = pjp.getTarget().getClass().getMethod(method.getName(), method.getParameterTypes());
@@ -27,8 +30,17 @@ public class CompensableMethodUtils {
         return method;
     }
 
+    /**
+     * 获取方法的类型
+     * @param propagation
+     * @param isTransactionActive
+     * @param transactionContext
+     * @return
+     */
     public static MethodType calculateMethodType(Propagation propagation, boolean isTransactionActive, TransactionContext transactionContext) {
 
+        //如果当前是默认的传播特性，并且没有还没有创建事务日志，且transactionContext为null，表示是事务发起者
+        //REQUIRES_NEW表示总是开启一个新的事务，目前还没想明白，但是猜测每个事务有一个事务发起者
         if ((propagation.equals(Propagation.REQUIRED) && !isTransactionActive && transactionContext == null) ||
                 propagation.equals(Propagation.REQUIRES_NEW)) {
             return MethodType.ROOT;
